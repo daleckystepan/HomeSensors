@@ -16,13 +16,14 @@
 #include <RFM69.h>               // Wireless
 #include <Adafruit_TSL2561_U.h>  // Light Sensor
 
+#include "secrets.h"             // ENCRYPTKEY
+
 
 #include <MemoryUsage.h>
 
 #define SERIAL_BAUD 9600
 #define BUTTON_INTERRUPT_PIN 3
 #define LED_PIN 4
-const char ENCRYPTKEY[] PROGMEM = "!SecretPassword!";
 
 volatile bool powerDownEnabled = true;
 volatile bool wdtInterrupted = true; // To send data after power up
