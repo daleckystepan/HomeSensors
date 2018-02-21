@@ -13,13 +13,18 @@ All of them are cheap and can be bought easily on Ebay.
 
 * Arduino Pro Mini ATmega 328p 3.3V 8MHZ
 * Wireless communication RFM69
-  * https://github.com/LowPowerLab/RFM69 (delete OTA files if compilation faild due to SPIFlash error)
+  * https://github.com/LowPowerLab/RFM69
+  * Delete RFM69_OTA.* files if compilation faild due to SPIFlash error
 * OLED display I2C 128x64
   * U8g2lib
+  * https://github.com/olikraus/u8g2
 * Temperature and Humidity Sensor HDC1080
-  * ClosedCube HDC080
+  * ClosedCube HDC1080
+  * https://github.com/closedcube/ClosedCube_HDC1080_Arduino
 * Light sensor TSL2561
   * Adafruit TSL2561 with Adafruit Unified Sensor Library
+  * https://github.com/adafruit/TSL2561-Arduino-Library
+  * https://github.com/adafruit/Adafruit_Sensor
 
 ## Installation
 * Clone repo
