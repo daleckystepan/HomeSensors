@@ -21,7 +21,7 @@ All of them are cheap and can be bought easily on Ebay.
 * Light sensor TSL2561
 ** Adafruit TSL2561 with Adafruit Unified Sensor Library
 
-## Instalation
+## Installation
 * Clone repo
 * Get all libraries
 * Change ENCRYPTKEY to your needs - must be 16 characters
