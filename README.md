@@ -1,8 +1,12 @@
 # HomeSensors
 Home Sensors based on Arduino
 
-
 * All libraries can be downloaded using built-in arduino library manager or fetched from github
+
+## Architecture
+* All nodes can comunicate with others using RFM69 wireless modules. Communiction is encrypted using AES.
+* One master node with NodeID = 0 only listen to packets and send them through Serial to computer
+* NodeID and NewtorkID can be set (and must be set) in EEPROM
 
 ## Hardware:
 All of them are cheap and can be bought easily on Ebay. 
