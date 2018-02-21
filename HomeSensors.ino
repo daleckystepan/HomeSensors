@@ -72,16 +72,16 @@ SerialCommand scmdGetNodeId("gNodeId", cmdGetNodeId);
 SerialCommand scmdSetNodeId("sNodeId", cmdSetNodeId);
 
 
-// Senzor teploty a vlhkosti
+// Temperature and humidity sensor
 ClosedCube_HDC1080 hdc;
 
-// RF modul
+// RF module
 RFM69 radio;
 
 // Oled display
 U8X8_SSD1306_128X64_NONAME_HW_I2C oled(U8G2_R0);
 
-// Senzor svetla
+// Light sensor
 Adafruit_TSL2561_Unified tsl(TSL2561_ADDR_FLOAT, 12345);
 
 
