@@ -34,14 +34,15 @@ byte prepis = 0;
 
 struct Settings
 {
-  byte networkid;
-  byte nodeid;
+  uint8_t networkid;
+  uint8_t nodeid;
 };
 
 Settings settings;
 
 struct Packet
 {
+  uint8_t radioTemperature;
   double temperature;
   double humidity;
   uint32_t light;
@@ -204,15 +205,8 @@ void loop(void)
   {
     FREERAM_PRINT;
     
-    if(settings.nodeid == 0)
-    {
-      masterLoop();
-    }
-    else
-    {
-      nodeLoop();  
-    }
-
+    nodeLoop();
+    
     // Set new wdt timer
     wdtInterrupted = false;
 
@@ -220,6 +214,7 @@ void loop(void)
     WDTCSR |= (1 << WDIE);
   }
   
+  // Come up with another solution - dont call it too often
   attachInterrupt(digitalPinToInterrupt(BUTTON_INTERRUPT_PIN), ButtonInterrupt, LOW);
 
   if( powerDownEnabled )
@@ -233,13 +228,11 @@ void masterPacket()
 {
   if(radio.DATALEN == sizeof(Packet))
   {
-    Serial.print(F("[RFM69] DATA: "));
-
-    Packet *p = (Packet*)radio.DATA;
-    printPacket(p);
-
     lastSource = radio.SENDERID;
     lastRssi = radio.RSSI;
+    Packet *p = (Packet*)radio.DATA;
+
+    printDataPacket(lastSource, lastRssi, p);
   }
   else
   {
@@ -247,15 +240,6 @@ void masterPacket()
   }
 }
 
-
-void masterLoop()
-{
-  sensors_event_t event;
-  tsl.getEvent(&event);
-  uint32_t light = event.light;
-  
-  updateDisplay(hdc.readTemperature(), hdc.readHumidity(), light, lastSource, lastRssi);
-}
 
 // Receive
 void nodePacket()
@@ -266,9 +250,11 @@ void nodePacket()
 
 void nodeLoop()
 {
-  Packet p = {0.0, 0.0, 0};
+  Packet p = {0, 0.0, 0.0, 0};
 
   Serial.print(F("[SENSORS] Reading"));
+
+  p.radioTemperature = radio.readTemperature(-8);
 
   if( hal.hdc )
   {
@@ -276,7 +262,6 @@ void nodeLoop()
     p.humidity = hdc.readHumidity();
     Serial.print(F(" hdc1080"));
   }
-
 
   if( hal.tsl )
   {
@@ -288,24 +273,30 @@ void nodeLoop()
 
   Serial.println();
 
+  printDataPacket(settings.nodeid, 0, &p);
 
   // Send to master (nodeid == 0)
   // 255 = broadcast
-  Serial.print(F("[RFM69] Sending packet: "));
-  printPacket(&p);
-  radio.send(0, &p, sizeof(Packet));
+  if(settings.nodeid)  // if not master
+  {
+    Serial.println(F("[RFM69] Sending packet"));
+    radio.send(0, &p, sizeof(Packet));
+  }
 
-
-  updateDisplay(p.temperature, p.humidity, p.light, lastSource, lastRssi);
+  updateDisplay(p.radioTemperature, p.temperature, p.humidity, p.light, lastSource, lastRssi);
 }
 
 
-void printPacket(Packet *p)
+void printDataPacket(uint8_t sender, int16_t rssi , Packet *p)
 {
+    Serial.print(F("DATA: "));
+    
     Serial.print(F("S: "));
-    Serial.print(radio.SENDERID, DEC);
+    Serial.print(sender, DEC);
     Serial.print(F(" R: "));
-    Serial.print(radio.RSSI, DEC);    
+    Serial.print(rssi, DEC);
+    Serial.print(F(" RT: "));
+    Serial.print(p->radioTemperature);
     Serial.print(F(" T: "));
     Serial.print(p->temperature);
     Serial.print(F(" H: "));
@@ -316,7 +307,7 @@ void printPacket(Packet *p)
     Serial.println();
 }
 
-void updateDisplay(double t, double h, uint32_t l, uint8_t source, int16_t rssi)
+void updateDisplay(uint8_t rt, double t, double h, uint32_t l, uint8_t source, int16_t rssi)
 {
   Serial.println(F("[OLED] Updating"));
   const int MAX_LEN = 17;
@@ -348,6 +339,11 @@ void updateDisplay(double t, double h, uint32_t l, uint8_t source, int16_t rssi)
   dtostrf(l, 4, 0, line);
   snprintf(line, MAX_LEN, "%s lux", line);
   oled.drawString(0, 4, line);
+
+  // 6. blue line
+  snprintf(line, MAX_LEN, "%4d C", rt);
+  oled.drawString(0, 5, line);
+  
 
   // 8. Posledni radek
   snprintf(line, MAX_LEN, "%d x", prepis);
