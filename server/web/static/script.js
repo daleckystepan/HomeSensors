@@ -12,8 +12,18 @@ $.get("/serial/", {param: $(this).attr('id')},
 
         setTimeout(refreshLog, 300);
     });    
-return false;
+    return false;
 };
+
+
+function refreshTasks() {
+    $.get("/tasks/", {},
+    function(data) {
+        $("#tasks").html(data);
+        setTimeout(refreshTasks, 300);
+    });
+    return false;
+}
 
 
 function button(data) {
@@ -23,9 +33,10 @@ function button(data) {
 
 function init() {
     refreshLog();
+    refreshTasks();
     
     $(":button").click(function() {
-        $.get("/node/"+$(this).data('node')+"/"+$(this).data('fce'), {}, button)
+        $.get("/node/"+$(this).data('node')+"/"+$(this).data('cmd'), {}, button)
     });
 }
 

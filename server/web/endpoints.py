@@ -10,19 +10,12 @@ from collections import deque
 from tinydb import TinyDB, Query
 
 serialBuffer = deque([], 100)
-serialCommand = deque([])
+tasks = deque([])
 db = TinyDB('db.json')
 
-import re
+from parser import Parser
 from datetime import datetime
 
-pattern = re.compile(r"""DATA:
-                            \ S:\ (?P<source>\d+)
-                            \ R:\ (?P<rssi>-?\d+)
-                            \ RT:\ (?P<radiotemp>\d+)
-                            \ T:\ (?P<temp>(\d)+\.(\d+))
-                            \ H:\ (?P<hum>(\d)+\.(\d+))
-                            \ L:\ (?P<light>\d+)""",re.VERBOSE)
 
 @app.route('/')
 def index():
@@ -30,45 +23,46 @@ def index():
         session['id'] = uuid.uuid4();
     table = db.table('nodes')
     nodes = table.all()
-    nodes.sort(key=lambda x: x['id'])
+    nodes.sort(key=lambda x: x['node'])
     return render_template('index.html', id=session['id'], nodes=nodes)
+
 
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
 
+
 @app.route('/serial/', methods=['POST'])
 def serialPost():
-    data = request.get_json()
-    line = data.get('line')
-       
+    line = request.get_json()
     serialBuffer.append(line)
     
-    match = pattern.match(line)
-    if match:
+    json = Parser.serialToJson(line)
+    
+    data = []
+    
+    if json:
+        json['datetime'] = datetime.now().strftime("%d. %m. %Y %H:%M:%S")
+        
         table = db.table('nodes')
-        id = match.group("source")
-        source = match.group("source")
-        rssi = match.group("rssi")
-        radiotemp = match.group("radiotemp")
-        temp = float(match.group("temp"))
-        hum = float(match.group("hum"))
-        light = match.group("light")
+        Node = Query()
+        table.upsert(json, Node.node == json['node'])
         
-        dt = datetime.now().strftime("%d. %m. %Y %H:%M:%S")
-        
-        User = Query()
-        table.upsert({'id': id, 'datetime': dt, 'rssi': rssi, 'radiotemp': radiotemp, 'temp': temp, 'humidity': hum, 'light': light}, User.id == id)
-        
-        data = []
-        if len(serialCommand):
-            data = serialCommand.pop()
+        if len(tasks):
+            data = tasks.pop()
     
     return render_template('serialPost.json', data=data)
+
 
 @app.route('/serial/', methods=['GET'])
 def serialGet():
     return render_template('serialGet.json', lines=list(serialBuffer))
+
+
+@app.route('/tasks/')
+def tasksGet():
+    return render_template('serialPost.json', data=list(tasks))
+
 
 @app.route('/network/')
 def network():
@@ -76,7 +70,9 @@ def network():
     data = table.all()
     return render_template('network.json', nodes=data)
 
-@app.route('/node/<int:id>/<string:fce>/')
-def node(id, fce):
-    serialCommand.append({'id': id, 'fce': fce})
+
+@app.route('/node/<int:node>/<string:cmd>/')
+def node(node, cmd):
+    tasks.append({'node': node, 'cmd': cmd, 'uuid': uuid.uuid4()})
     return ('', 204)
+
