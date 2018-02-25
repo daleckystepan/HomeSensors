@@ -75,4 +75,3 @@ def network():
 def node(node, cmd):
     tasks.append({'node': node, 'cmd': cmd, 'uuid': uuid.uuid4()})
     return ('', 204)
-

@@ -13,11 +13,16 @@ textarea {
     color: rgb(28, 184, 65);
 }
 
-.node {
+div.node h2 {
+    margin-top: 0px;
+}
+
+
+div.node {
     background: rgb(28, 184, 65); /* this is a green */
     border-radius: 10px;
-    margin: 5%;
-    padding-top: 0.1em;
+    margin: 1em;
+    padding-top: 1em;
     padding-left: 1em;
     padding-right: 1em;
     padding-bottom: 1em;
@@ -36,4 +41,12 @@ td {
 .node button {
     width: 90%;
     border-radius: 5px;
+}
+
+button.trash {
+    float: right;
+    background-color: inherit;
+    border: 0;
+    width: 1em;
+    margin-right: 0.5em;
 }

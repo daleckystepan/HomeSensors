@@ -19,7 +19,27 @@ $.get("/serial/", {param: $(this).attr('id')},
 function refreshTasks() {
     $.get("/tasks/", {},
     function(data) {
-        $("#tasks").html(data);
+        json = jQuery.parseJSON(data)
+        
+        for(var i = 0; i < json.length; i++)
+        {
+            task = $("div#"+json[i]['uuid']).this
+
+            if(task)
+            {
+                task.append("Ahoj")
+                //update()
+            }
+            else
+            {
+                item = '<div id="' + json[i]['uuid'] + '">'
+                item += '<i class="far fa-square"></i> '
+                item += '<b>'+ json[i].cmd + '</b> <span>' + json[i].node + '</span>'
+                item += '</div>'
+                $("#tasks").append(item)
+            }
+        }
+        
         setTimeout(refreshTasks, 300);
     });
     return false;

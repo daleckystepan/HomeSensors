@@ -3,6 +3,7 @@
     {% for node in nodes %}
         <div class="pure-u-1-5">
             <div class="node node-content">
+                <button class="trash" data-node="{{ node.node }}" data-cmd="remove"><i class="fa fa-trash-alt"></i></button>
                 <h2><i class="fa fa-wifi"></i> Node: {{ node.node }}</h2>
                 <table class="node-content">
                     <tr>
