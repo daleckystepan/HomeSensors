@@ -71,11 +71,15 @@ def tasksGet():
     return render_template('data.json', data=data)
 
 
-@app.route('/task/<uuid:uuid>')
+@app.route('/task/<string:uuid>')
 def task(uuid):
     table = db.table('tasks')
     Task = Query()
     data = table.search(Task.uuid == uuid)
+
+    if len(data):
+        data = data[0]
+
     return render_template('data.json', data=data)
 
 
@@ -92,8 +96,12 @@ def node(node):
     Node = Query()
     data = table.search(Node.node == node)
 
+    if len(data):
+        data = data[0]
+
     cmd = request.args.get('cmd')
     if cmd:
+        print("Create tasks")
         t = {'node': node, 'cmd': cmd, 'uuid': str(uuid.uuid4())}
         table = db.table('tasks')
         table.insert(t)

@@ -1,42 +1,47 @@
 <h2><i class="fa fa-globe"></i> Network</h2>
 <div class="pure-g" id="network">
     {% for node in nodes %}
-        <div class="pure-u-1-5">
-            <div class="node node-content">
+        <div class="pure-u-1-5 node" data-node="{{ node.node }}" id="node-{{ node.node }}">
+            <div class="node-inner node-content">
                 <button class="trash" data-node="{{ node.node }}" data-cmd="remove"><i class="fa fa-trash-alt"></i></button>
                 <h2><i class="fa fa-wifi"></i> Node: {{ node.node }}</h2>
                 <table class="node-content">
                     <tr>
                         <td><i class="fa fa-signal"></i></td>
                         <td><b>RSSI</b></td>
-                        <td>{{ node.rssi }}</td>
+                        <td class="node-rssi">{{ node.rssi }}</td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td><i class="fa fa-thermometer-half"></i></td>
                         <td><b>Radio temp</b></td>
-                        <td>{{ node.radiotemp }} &deg;C</td>
+                        <td class="node-radiotemp">{{ node.radiotemp }}</td>
+                        <td>&deg;C</td>
                     </tr>
-                    <tr><td colspan="3"><br /></td></tr>
+                    <tr><td colspan="4"><br /></td></tr>
                     <tr>
                         <td><i class="fa fa-thermometer-half"></i></td>
                         <td><b>Temp</b></td>
-                        <td>{{ node.temp }} &deg;C</td>
+                        <td class="node-temp">{{ node.temp }}</td>
+                        <td>&deg;C</td>
                     </tr>
                     <tr>
                         <td><i class="fa fa-tint"></i></td>
                         <td><b>Humidity</b></td>
-                        <td>{{ node.humidity }} %</td>
+                        <td class="node-humidity">{{ node.humidity }}</td>
+                        <td>%</td>
                     </tr>
                     <tr>
                         <td><i class="fa fa-lightbulb"></i></td>
                         <td><b>Light</b></td>
-                        <td>{{ node.light }} lux</td>
+                        <td class="node-light">{{ node.light }}</td>
+                        <td>lux</td>
                     </tr>
-                    <tr><td colspan="3"><br /></td></tr>
+                    <tr><td colspan="4"><br /></td></tr>
                     <tr>
                         <td><i class="fa fa-clock"></i></td>
                         <td><b>Datetime</b></td>
-                        <td>{{ node.datetime }}</td>
+                        <td class="node-datetime" colspan="2">{{ node.datetime }}</td>
                     </tr>
                 </table>
                 <br />
