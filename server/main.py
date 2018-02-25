@@ -26,7 +26,9 @@ def mainSerial(prometheus_pipe):
                 line = ser.readline().decode('ascii').strip()
                 prometheus_pipe.send(line)
                 r = requests.post('http://localhost:8080/serial', headers=headers, data = json.dumps(line))
-                print("SerialCommand: {}".format(r.text))
+                jsn = json.loads(r.text)
+                if jsn:
+                    print("SerialCommand: {}".format(jsn))
 
 
 def mainFlask():

@@ -13,16 +13,16 @@ class Parser:
     def serialToJson(cls, line):
         match = cls.pattern.match(line)
         ret = {}
-        if match: 
+        if match:
             node = match.group("source")
             rssi = match.group("rssi")
             radiotemp = match.group("radiotemp")
             temp = float(match.group("temp"))
             humidity = float(match.group("humidity"))
             light = match.group("light")
-            
+
             ret = {'node': node, 'rssi': rssi, 'radiotemp': radiotemp, 'temp': temp, 'humidity': humidity, 'light': light}
-        
+
         return ret
 
     @classmethod
