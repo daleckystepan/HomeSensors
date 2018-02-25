@@ -1,5 +1,5 @@
 function refreshLog() {
-$.get("/serial/", {param: $(this).attr('id')}, 
+$.get("/serial", {param: $(this).attr('id')},
     function(data) {
         json = jQuery.parseJSON(data)
         lines = []
@@ -11,36 +11,31 @@ $.get("/serial/", {param: $(this).attr('id')},
         $('textarea#log').scrollTop($('textarea#log')[0].scrollHeight);
 
         setTimeout(refreshLog, 300);
-    });    
+    });
     return false;
 };
 
 
-function refreshTasks() {
-    $.get("/tasks/", {},
+function refreshTasks(template) {
+    $.get("/tasks", {},
     function(data) {
         json = jQuery.parseJSON(data)
-        
+
         for(var i = 0; i < json.length; i++)
         {
-            task = $("div#"+json[i]['uuid']).this
-
-            if(task)
+            task = $("#"+json[i]['uuid'])
+            if(task.length)
             {
-                task.append("Ahoj")
                 //update()
             }
             else
             {
-                item = '<div id="' + json[i]['uuid'] + '">'
-                item += '<i class="far fa-square"></i> '
-                item += '<b>'+ json[i].cmd + '</b> <span>' + json[i].node + '</span>'
-                item += '</div>'
+                item = template(json[i])
                 $("#tasks").append(item)
             }
         }
-        
-        setTimeout(refreshTasks, 300);
+
+        setTimeout(refreshTasks, 300, template);
     });
     return false;
 }
@@ -52,11 +47,14 @@ function button(data) {
 
 
 function init() {
+    var source   = $("#task-template").html();
+    var template = Handlebars.compile(source);
+
     refreshLog();
-    refreshTasks();
-    
+    refreshTasks(template);
+
     $(":button").click(function() {
-        $.get("/node/"+$(this).data('node')+"/"+$(this).data('cmd'), {}, button)
+        $.get("/node/"+$(this).data('node'), {'cmd': $(this).data('cmd')}, button)
     });
 }
 

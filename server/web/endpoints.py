@@ -12,6 +12,7 @@ from tinydb import TinyDB, Query
 serialBuffer = deque([], 100)
 tasks = deque([])
 db = TinyDB('db.json')
+db.table('tasks').purge()
 
 from parser import Parser
 from datetime import datetime
@@ -32,46 +33,70 @@ def serve_static(path):
     return send_from_directory('static', path)
 
 
-@app.route('/serial/', methods=['POST'])
+@app.route('/serial', methods=['POST'])
 def serialPost():
     line = request.get_json()
     serialBuffer.append(line)
-    
+
     json = Parser.serialToJson(line)
-    
+
     data = []
-    
+
     if json:
         json['datetime'] = datetime.now().strftime("%d. %m. %Y %H:%M:%S")
-        
+
         table = db.table('nodes')
         Node = Query()
         table.upsert(json, Node.node == json['node'])
-        
+
         if len(tasks):
-            data = tasks.pop()
-    
-    return render_template('serialPost.json', data=data)
+            uuid = tasks.pop()
+            table = db.table('tasks')
+            Task = Query()
+            data = table.search(Task.uuid == uuid)
+            table.remove(None, [data[0].doc_id])
+
+    return render_template('data.json', data=data)
 
 
-@app.route('/serial/', methods=['GET'])
+@app.route('/serial', methods=['GET'])
 def serialGet():
-    return render_template('serialGet.json', lines=list(serialBuffer))
+    return render_template('data.json', data=list(serialBuffer))
 
 
-@app.route('/tasks/')
+@app.route('/tasks')
 def tasksGet():
-    return render_template('serialPost.json', data=list(tasks))
+    table = db.table('tasks')
+    data = table.all()
+    return render_template('data.json', data=data)
 
 
-@app.route('/network/')
+@app.route('/task/<uuid:uuid>')
+def task(uuid):
+    table = db.table('tasks')
+    Task = Query()
+    data = table.search(Task.uuid == uuid)
+    return render_template('data.json', data=data)
+
+
+@app.route('/network')
 def network():
     table = db.table('nodes')
     data = table.all()
-    return render_template('network.json', nodes=data)
+    return render_template('data.json', data=data)
 
 
-@app.route('/node/<int:node>/<string:cmd>/')
-def node(node, cmd):
-    tasks.append({'node': node, 'cmd': cmd, 'uuid': uuid.uuid4()})
-    return ('', 204)
+@app.route('/node/<string:node>')
+def node(node):
+    table = db.table('nodes')
+    Node = Query()
+    data = table.search(Node.node == node)
+
+    cmd = request.args.get('cmd')
+    if cmd:
+        t = {'node': node, 'cmd': cmd, 'uuid': str(uuid.uuid4())}
+        table = db.table('tasks')
+        table.insert(t)
+        tasks.append(t['uuid'])
+
+    return render_template('data.json', data=data)

@@ -5,7 +5,7 @@ from flask import Flask
 import logging
 from logging.handlers import RotatingFileHandler
 
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__, static_url_path='/static')
 
 import web.endpoints
 
