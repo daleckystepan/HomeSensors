@@ -1,0 +1,8 @@
+textarea {
+    font-family: "monospace";
+    width: 100%;
+    min-height: 30em;
+    font-size: 80%;
+    background: black;
+    color: rgb(28, 184, 65);
+}

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 from flask import Flask
+from flask_cors import CORS
 
 import logging
 from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__, static_url_path='/static')
+CORS(app)
 
 import web.endpoints
 
