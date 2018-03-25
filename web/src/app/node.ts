@@ -1,5 +1,5 @@
-export class Node {
-  node: number;
+export interface Node {
+  id: number;
   rssi: number;
   radiotemp: number;
   temp: number;

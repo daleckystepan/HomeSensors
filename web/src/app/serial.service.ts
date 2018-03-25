@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable()
 export class SerialService {
-  private url = 'http://localhost:8080/serial';
+  private url = 'http://localhost:8080/v1/serial';
 
   constructor(private http: HttpClient) { }
 

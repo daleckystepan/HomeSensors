@@ -6,6 +6,7 @@ import {AnonymousSubscription} from "rxjs/Subscription";
 import { Node } from '../node';
 import { NodeService } from '../node.service';
 
+import { Task } from '../task';
 
 @Component({
   selector: 'app-nodes',
@@ -39,19 +40,20 @@ export class NodesComponent implements OnInit, OnDestroy {
   }
 
   ping(node: Node): void {
-    console.log('ping'+node.node)
+    this.nodeService.createTask({id: 0, node: node.id, cmd: "ping", params: []})
+      .subscribe()
   }
 
   restart(node: Node): void {
-    console.log('restart'+node.node)
+    console.log('restart '+node.id)
   }
 
   fire(node: Node): void {
-    console.log('fire'+node.node)
+    console.log('fire '+node.id)
   }
 
   trash(node: Node): void {
-    console.log('trash'+node.node)
+    console.log('trash '+node.id)
   }
 
 }

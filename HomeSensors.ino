@@ -29,7 +29,7 @@ volatile bool powerDownEnabled = true;
 volatile bool wdtInterrupted = true; // To send data after power up
 uint8_t lastSource = 0;
 int16_t lastRssi = 0;
-byte prepis = 0;
+uint8_t packetId = 0;
 
 
 struct Settings
@@ -40,8 +40,21 @@ struct Settings
 
 Settings settings;
 
-struct Packet
+enum PacketHeaderType{
+  SENSOR_DATA,
+  PING_REQUEST,
+  PING_RESPONSE,
+};
+
+struct PacketHeader
 {
+  uint8_t type;
+  uint8_t id;
+};
+
+struct PacketSensorData
+{
+  struct PacketHeader ph;
   uint8_t radioTemperature;
   double temperature;
   double humidity;
@@ -188,15 +201,8 @@ void loop(void)
     Serial.print(radio.DATALEN);
     Serial.print(F(" RSSI: "));
     Serial.println(radio.RSSI);
-    
-    if(settings.nodeid == 0)
-    {
-      masterPacket();
-    }
-    else
-    {
-      nodePacket();  
-    }
+
+    receivePacket();
   }
 
 
@@ -224,37 +230,42 @@ void loop(void)
 }
 
 // Receive
-void masterPacket()
+void receivePacket()
 {
-  if(radio.DATALEN == sizeof(Packet))
-  {
-    lastSource = radio.SENDERID;
-    lastRssi = radio.RSSI;
-    Packet *p = (Packet*)radio.DATA;
+  lastSource = radio.SENDERID;
+  lastRssi = radio.RSSI;
+  PacketHeader *p = (PacketHeader*)radio.DATA;
 
-    printDataPacket(lastSource, lastRssi, p);
-  }
-  else
+  switch(p->type)
   {
-    Serial.println(F("[RFM69] Invalid packet size"));
+    case SENSOR_DATA:
+      publishPacketSensorData(lastSource, lastRssi, (PacketSensorData*)p);
+    break;
+
+    case PING_REQUEST:
+      Serial.print(F("[RFM69] Ping request"));
+    break;
+
+    case PING_RESPONSE:
+      Serial.print(F("[RFM69] Ping reponse"));
+    break;
+
+    default:
+      Serial.print(F("[RFM69] Invalid packet from "));
+      Serial.print(lastSource);
+      Serial.print(F(" type "));
+      Serial.println(p->type);
+    break;
   }
 }
-
-
-// Receive
-void nodePacket()
-{
-
-}
-
 
 void nodeLoop()
 {
-  Packet p = {0, 0.0, 0.0, 0};
+  PacketSensorData p = {SENSOR_DATA, packetId, 0, 0.0, 0.0, 0};
 
   Serial.print(F("[SENSORS] Reading"));
 
-  p.radioTemperature = radio.readTemperature(-8);
+  p.radioTemperature = radio.readTemperature();
 
   if( hal.hdc )
   {
@@ -273,27 +284,31 @@ void nodeLoop()
 
   Serial.println();
 
-  printDataPacket(settings.nodeid, 0, &p);
-
+  // Publish data
   // Send to master (nodeid == 0)
   // 255 = broadcast
   if(settings.nodeid)  // if not master
   {
     Serial.println(F("[RFM69] Sending packet"));
-    radio.send(0, &p, sizeof(Packet));
+    radio.send(0, &p, sizeof(PacketSensorData));
+    ++packetId;
+  }
+  else // Publish on master node
+  {
+    publishPacketSensorData(settings.nodeid, 0, &p);
   }
 
   updateDisplay(p.radioTemperature, p.temperature, p.humidity, p.light, lastSource, lastRssi);
 }
 
 
-void printDataPacket(uint8_t sender, int16_t rssi , Packet *p)
+void publishPacketSensorData(uint8_t id, int16_t rssi , PacketSensorData *p)
 {
-    Serial.print(F("DATA: "));
+    Serial.print(F("# "));
     
-    Serial.print(F("S: "));
-    Serial.print(sender, DEC);
-    Serial.print(F(" R: "));
+    Serial.print(F("ID: "));
+    Serial.print(id, DEC);
+    Serial.print(F(" RSSI: "));
     Serial.print(rssi, DEC);
     Serial.print(F(" RT: "));
     Serial.print(p->radioTemperature);
@@ -312,8 +327,6 @@ void updateDisplay(uint8_t rt, double t, double h, uint32_t l, uint8_t source, i
   Serial.println(F("[OLED] Updating"));
   const int MAX_LEN = 17;
   char line[MAX_LEN];
-  
-  ++prepis;
 
   // 1. zluty radek
   snprintf(line, MAX_LEN, "Net:%3d SIG:%4d", settings.networkid, rssi);
@@ -346,7 +359,7 @@ void updateDisplay(uint8_t rt, double t, double h, uint32_t l, uint8_t source, i
   
 
   // 8. Posledni radek
-  snprintf(line, MAX_LEN, "%d x", prepis);
+  snprintf(line, MAX_LEN, "%d x", packetId);
   oled.drawString(0, 7, line);
 }
 
