@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
     "sync"
     "regexp"
     "net/http"
@@ -10,12 +9,10 @@ import (
     "time"
     "strconv"
 
-
+    "github.com/sirupsen/logrus"
     "github.com/fatih/structs"
-
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
-
     "github.com/HouzuoGuo/tiedot/db"
 )
 
@@ -33,6 +30,7 @@ var taskBuffer struct {
 
 type Env struct {
     db *db.DB
+    log *logrus.Entry
 }
 
 type Task struct {
@@ -90,7 +88,10 @@ func nodeFromJson(node map[string]interface{}) (*Node) {
 
 func mainGin(wg *sync.WaitGroup) {
     defer wg.Done()
-    fmt.Println("REST API Server")
+
+    mlog := logrus.WithFields(logrus.Fields{"module": "main", "function": "mainSerial"})
+    log := mlog.WithFields(logrus.Fields{"function": "mainSerial"})
+    log.Info("Starting")
 
     serialBuffer.ring = ring.New(25)
 
@@ -98,14 +99,14 @@ func mainGin(wg *sync.WaitGroup) {
 
     var myDB = initDB()
     defer myDB.Close()
-    env := &Env{db: myDB}
+    env := &Env{db: myDB, log: mlog}
 
 
     router := gin.Default()
 
     // Has to be before any Group or endpoint definition
     config := cors.DefaultConfig()
-    config.AllowOrigins = []string{"http://localhost:4200"}
+    config.AllowOrigins = []string{"http://localhost:4200", "http://192.168.1.24:4200"}
     router.Use(cors.New(config))
 
 
@@ -129,6 +130,7 @@ func mainGin(wg *sync.WaitGroup) {
 
 
 func (e *Env) serialPost(c *gin.Context) {
+    log := e.log.WithFields(logrus.Fields{"function": "serialPost"})
 
     var line string
 
@@ -146,7 +148,7 @@ func (e *Env) serialPost(c *gin.Context) {
             match["datetime"] = t.Format("2. 1. 2006 15:04:05")
             node := nodeFromJson(match)
             upsertNode(nodes, structs.Map(node), "id")
-            PrintCol(nodes)
+            //PrintCol(nodes)
         }
 
 
@@ -158,9 +160,9 @@ func (e *Env) serialPost(c *gin.Context) {
             taskBuffer.list.Remove(elem)
             taskBuffer.mutex.Unlock()
 
-            fmt.Println("ID: ", id)
-
             tasks := e.db.Use(DB_TASKS_COLLECTION)
+
+            log.Debug("Task ID: ", id)
 
             query := map[string]interface{}{
                 "eq":    id,
@@ -182,7 +184,7 @@ func (e *Env) serialPost(c *gin.Context) {
             for id := range queryResult {
                 task, err := tasks.Read(id)
                 if err == nil {
-                    fmt.Println("Task:", task)
+                    log.Debug("Task returned:", task)
                     c.JSON(http.StatusOK, task)
                     tasks.Delete(id)
                     return
@@ -254,9 +256,11 @@ func (e *Env) tasksGet(c *gin.Context) {
 
 
 func (e *Env) tasksPost(c *gin.Context) {
+    log := e.log.WithFields(logrus.Fields{"function": "tasksPost"})
+
     var task Task
     if err := c.BindJSON(&task); err == nil {
-        fmt.Println("Task: ", task)
+        log.Debug("Task created: ", task)
 
         taskBuffer.mutex.Lock()
         taskBuffer.list.PushBack(task.Id)
@@ -269,23 +273,31 @@ func (e *Env) tasksPost(c *gin.Context) {
 
         c.JSON(http.StatusOK, task)
     } else {
-        fmt.Println("Error", err)
+        log.Error(err)
     }
 }
 
 
 func (e *Env) taskGet(c *gin.Context) {
-//    id := c.Param("id")
+    id := c.Param("id")
 
-//     task := map[string]interface{}{
-//         "id":   id,
-//         "node": "0",
-//         "cmd":  "test",
-//     }
-//
-//
-//     tasks := e.db.Use(DB_TASKS_COLLECTION)
-//     tasks.Insert(task)
-//
-//     c.JSON(http.StatusOK, task)
+    nodes := e.db.Use(DB_TASKS_COLLECTION)
+
+    query := map[string]interface{}{
+        "eq":    id,
+        "in":    []interface{}{"id"},
+    }
+
+    queryResult := make(map[int]struct{})
+    db.EvalQuery(query, nodes, &queryResult)
+
+    for id := range queryResult {
+        node, err := nodes.Read(id)
+        if err == nil {
+            c.JSON(http.StatusOK, node)
+            return
+        }
+    }
+
+    c.JSON(http.StatusNotFound, nil)
 }

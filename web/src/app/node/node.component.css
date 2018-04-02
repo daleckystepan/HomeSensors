@@ -1,0 +1,12 @@
+.node td:first-child {
+    text-align: center;
+}
+
+.node td:nth-child(3) {
+    text-align: right;
+}
+
+td {
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}

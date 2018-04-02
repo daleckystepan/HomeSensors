@@ -1,2 +1,9 @@
-<app-nodes></app-nodes>
+<mat-toolbar><mat-icon>language</mat-icon> Network</mat-toolbar>
+
+<mat-grid-list cols="4" rowHeight="380px">
+  <mat-grid-tile *ngFor="let node of nodes">
+    <app-node [node]="node"></app-node>
+  </mat-grid-tile>
+</mat-grid-list>
+
 <app-serial></app-serial>

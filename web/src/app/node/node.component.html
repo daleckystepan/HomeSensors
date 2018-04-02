@@ -1,0 +1,53 @@
+<mat-card class="node">
+  <mat-card-header>
+    <mat-icon mat-card-avatar>settings_input_antenna</mat-icon>
+    <mat-card-title>Node: {{ node.id }}</mat-card-title>
+    <mat-card-subtitle>Obývací pokoj</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <table>
+        <tr>
+            <td><i class="fa fa-signal"></i></td>
+            <td><b>RSSI</b></td>
+            <td class="node-rssi">{{ node.rssi }}</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-thermometer-half"></i></td>
+            <td><b>Radio temp</b></td>
+            <td class="node-radiotemp">{{ node.radiotemp }}</td>
+            <td>&deg;C</td>
+        </tr>
+        <tr><td colspan="4"><br /></td></tr>
+        <tr>
+            <td><i class="fa fa-thermometer-half"></i></td>
+            <td><b>Temp</b></td>
+            <td class="node-temp">{{ node.temp }}</td>
+            <td>&deg;C</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-tint"></i></td>
+            <td><b>Humidity</b></td>
+            <td class="node-humidity">{{ node.humidity }}</td>
+            <td>%</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-lightbulb"></i></td>
+            <td><b>Light</b></td>
+            <td class="node-light">{{ node.light }}</td>
+            <td>lux</td>
+        </tr>
+        <tr><td colspan="4"><br /></td></tr>
+        <tr>
+            <td><i class="fa fa-clock"></i></td>
+            <td><b>Datetime</b></td>
+            <td class="node-datetime" colspan="2">{{ node.datetime }}</td>
+        </tr>
+    </table>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-raised-button color="primary" (click)="ping(node)">PING</button>
+    <button mat-raised-button color="primary" (click)="restart(node)">RESTART</button>
+    <button mat-raised-button color="primary" (click)="fire(node)">FIRE</button>
+  </mat-card-actions>
+</mat-card>

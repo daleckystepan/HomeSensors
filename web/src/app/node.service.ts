@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import { catchError, retry } from 'rxjs/operators';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 
 import { Node } from './node';
-import { Task } from './task';
+
+import { environment } from '../environments/environment';
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -11,20 +14,34 @@ const httpOptions = {
   })
 };
 
-
 @Injectable()
 export class NodeService {
-  private url = 'http://localhost:8080/v1/nodes';
 
   constructor(private http: HttpClient) { }
 
   getNodes(): Observable<Node[]> {
-    return this.http.get<Node[]>(this.url)
+    return this.http.get<Node[]>(environment.backendUrl + '/nodes')
+      .pipe(catchError(this.handleError))
   }
 
-  createTask(task: Task): Observable<Task> {
-    console.log(task)
-    return this.http.post<Task>('http://localhost:8080/v1/tasks', task, httpOptions)
+  getNode(node: Node): Observable<Node> {
+    return this.http.get<Node>(environment.backendUrl + '/node/' + node.id)
   }
+
+  private handleError(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      // A client-side or network error occurred. Handle it accordingly.
+      console.error('An error occurred:', error.error.message);
+    } else {
+      // The backend returned an unsuccessful response code.
+      // The response body may contain clues as to what went wrong,
+      console.error(
+        `Backend returned code ${error.status}, ` +
+        `body was: ${error.error}`);
+    }
+    // return an ErrorObservable with a user-facing error message
+    return new ErrorObservable(
+      'Something bad happened; please try again later.');
+  };
 
 }

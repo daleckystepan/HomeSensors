@@ -1,10 +1,10 @@
 package main
 
 import (
-    "fmt"
     "reflect"
     "encoding/json"
 
+    "github.com/sirupsen/logrus"
     "github.com/HouzuoGuo/tiedot/db"
 )
 
@@ -35,6 +35,7 @@ const (
 
 
 func upsertNode(col *db.Col, doc map[string]interface{}, key string) (id int, err error) {
+    log := logrus.WithFields(logrus.Fields{"module": "db", "function": "upsertNode"})
 
     query := map[string]interface{}{
         "eq":    doc[key],
@@ -47,12 +48,12 @@ func upsertNode(col *db.Col, doc map[string]interface{}, key string) (id int, er
     }
 
     for id := range queryResult {
-        fmt.Printf("Updating %d\n", id)
+        log.Debug("Updating ", id)
         col.Update(id, doc)
     }
 
     if len(queryResult) == 0 {
-        fmt.Printf("Creating new one\n")
+        log.Debug("Creating new one ")
         id,err = col.Insert(doc)
     }
 
@@ -61,12 +62,13 @@ func upsertNode(col *db.Col, doc map[string]interface{}, key string) (id int, er
 
 
 func ForceIndex(col *db.Col, idxPath []string) (err error) {
+    log := logrus.WithFields(logrus.Fields{"module": "db", "function": "ForceIndex"})
 
     var found = false
 
     for _, path := range col.AllIndexes() {
         if reflect.DeepEqual(path, idxPath) {
-            fmt.Printf("I already have an index on path %v\n", path)
+            log.Debug("I already have an index on path %v\n", path)
             found = true
             break
         }
@@ -84,9 +86,10 @@ func ForceIndex(col *db.Col, idxPath []string) (err error) {
 
 
 func PrintCol(col *db.Col) {
+    log := logrus.WithFields(logrus.Fields{"module": "db", "function": "PrintCol"})
 
     col.ForEachDoc(func(id int, docContent []byte) (willMoveOn bool) {
-        fmt.Println("Document", id, "is", string(docContent))
+        log.Debug("Document ", id, " is ", string(docContent))
         return true  // move on to the next document
     })
 

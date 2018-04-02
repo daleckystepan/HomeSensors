@@ -7,9 +7,8 @@ import (
     "bytes"
     "net/http"
     "encoding/json"
-    "io/ioutil"
-    "io"
-
+   // "io/ioutil"
+   // "io"
     "flag"
 
     "github.com/sirupsen/logrus"
@@ -20,15 +19,21 @@ import (
 
 )
 
+type Settings struct {
+    debug *bool
+}
 
 func main() {
 
-    debugPtr := flag.Bool("debug", false, "specify flag for debug verbosity")
+    settings := &Settings{}
+    // Program options
+    settings.debug = flag.Bool("debug", false, "specify flag for debug verbosity")
 
     flag.Parse()
 
+    // Logging
     logrus.SetOutput(os.Stderr)
-    if *debugPtr {
+    if *settings.debug {
         logrus.SetLevel(logrus.DebugLevel)
     } else {
         logrus.SetLevel(logrus.InfoLevel)
@@ -48,7 +53,8 @@ func main() {
 
     go func(){
         defer wg.Done()
-        logrus.WithFields(logrus.Fields{"module": "main", "function": "mainPrometheus"}).Info("Starting")
+        log := logrus.WithFields(logrus.Fields{"module": "main", "function": "mainPrometheus"})
+        log.Info("Starting")
     }()
 
     log.Info("Waiting for Go Routines")
@@ -79,19 +85,14 @@ func mainSerial(wg *sync.WaitGroup) {
         } else {
             defer resp.Body.Close()
             var t Task
-            body, err := ioutil.ReadAll(resp.Body)
-            if err == nil {
-                log.Debug("Body-text: ", string(body))
-                err := json.Unmarshal(body, &t)
-                if err == nil {
-                    log.Debug("Body: ", t)
-                } else {
-                    log.Error("Unamrshall error: ", err)
-                }
-            } else if err == io.EOF {
-                log.Error("Error ReadAll eof: ", err)
-            } else {
-                log.Error("Error ReadAll: ", err)
+            parser := json.NewDecoder(resp.Body)
+            err := parser.Decode(&t)
+            if err != nil {
+                log.Error(err)
+            }
+
+            if t.Cmd != "" {
+                log.Info("Task received: ", t)
             }
         }
     }
