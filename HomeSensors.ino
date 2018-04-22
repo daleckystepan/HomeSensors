@@ -40,7 +40,7 @@ struct Settings
 
 Settings settings;
 
-enum PacketHeaderType{
+enum PacketHeaderType {
   SENSOR_DATA,
   PING_REQUEST,
   PING_RESPONSE,
@@ -136,7 +136,7 @@ void setup(void)
   uint16_t manId = hdc.readManufacturerId();
   uint16_t devId = hdc.readDeviceId();
   hal.hdc = (manId != 0xFFFF) && (devId != 0xFFFF);
-  if( hal.hdc )
+  if ( hal.hdc )
   {
     Serial.print(F("Manufacture: "));
     Serial.print(manId, HEX);
@@ -148,10 +148,10 @@ void setup(void)
     Serial.println(F(" Failed"));
   }
 
-  
+
   Serial.print(F("[TSL2561]"));
   hal.tsl = tsl.begin();
-  if( hal.tsl )
+  if ( hal.tsl )
   {
     tsl.enableAutoRange(true);
     tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);
@@ -171,7 +171,7 @@ void setup(void)
 
   Serial.print(F("[RFM69] "));
   hal.radio = radio.initialize(RF69_868MHZ, settings.nodeid, settings.networkid);
-  if( hal.radio )
+  if ( hal.radio )
   {
     radio.setHighPower(true);
     radio.setPowerLevel(2); // 0-31
@@ -207,23 +207,23 @@ void loop(void)
 
 
   // If timed out set new interval
-  if( wdtInterrupted )
+  if ( wdtInterrupted )
   {
     FREERAM_PRINT;
-    
+
     nodeLoop();
-    
+
     // Set new wdt timer
     wdtInterrupted = false;
 
     wdt_enable(WDTO_8S);
     WDTCSR |= (1 << WDIE);
   }
-  
+
   // Come up with another solution - dont call it too often
   attachInterrupt(digitalPinToInterrupt(BUTTON_INTERRUPT_PIN), ButtonInterrupt, LOW);
 
-  if( powerDownEnabled )
+  if ( powerDownEnabled )
   {
     powerDown();
   }
@@ -236,26 +236,26 @@ void receivePacket()
   lastRssi = radio.RSSI;
   PacketHeader *p = (PacketHeader*)radio.DATA;
 
-  switch(p->type)
+  switch (p->type)
   {
     case SENSOR_DATA:
       publishPacketSensorData(lastSource, lastRssi, (PacketSensorData*)p);
-    break;
+      break;
 
     case PING_REQUEST:
       Serial.print(F("[RFM69] Ping request"));
-    break;
+      break;
 
     case PING_RESPONSE:
       Serial.print(F("[RFM69] Ping reponse"));
-    break;
+      break;
 
     default:
       Serial.print(F("[RFM69] Invalid packet from "));
       Serial.print(lastSource);
       Serial.print(F(" type "));
       Serial.println(p->type);
-    break;
+      break;
   }
 }
 
@@ -267,14 +267,14 @@ void nodeLoop()
 
   p.radioTemperature = radio.readTemperature();
 
-  if( hal.hdc )
+  if ( hal.hdc )
   {
     p.temperature = hdc.readTemperature();
     p.humidity = hdc.readHumidity();
     Serial.print(F(" hdc1080"));
   }
 
-  if( hal.tsl )
+  if ( hal.tsl )
   {
     sensors_event_t event;
     tsl.getEvent(&event);
@@ -287,7 +287,7 @@ void nodeLoop()
   // Publish data
   // Send to master (nodeid == 0)
   // 255 = broadcast
-  if(settings.nodeid)  // if not master
+  if (settings.nodeid) // if not master
   {
     Serial.println(F("[RFM69] Sending packet"));
     radio.send(0, &p, sizeof(PacketSensorData));
@@ -304,22 +304,22 @@ void nodeLoop()
 
 void publishPacketSensorData(uint8_t id, int16_t rssi , PacketSensorData *p)
 {
-    Serial.print(F("# "));
-    
-    Serial.print(F("ID: "));
-    Serial.print(id, DEC);
-    Serial.print(F(" RSSI: "));
-    Serial.print(rssi, DEC);
-    Serial.print(F(" RT: "));
-    Serial.print(p->radioTemperature);
-    Serial.print(F(" T: "));
-    Serial.print(p->temperature);
-    Serial.print(F(" H: "));
-    Serial.print(p->humidity);
-    Serial.print(F(" L: "));
-    Serial.print(p->light);
-    
-    Serial.println();
+  Serial.print(F("# "));
+
+  Serial.print(F("ID: "));
+  Serial.print(id, DEC);
+  Serial.print(F(" RSSI: "));
+  Serial.print(rssi, DEC);
+  Serial.print(F(" RT: "));
+  Serial.print(p->radioTemperature);
+  Serial.print(F(" T: "));
+  Serial.print(p->temperature);
+  Serial.print(F(" H: "));
+  Serial.print(p->humidity);
+  Serial.print(F(" L: "));
+  Serial.print(p->light);
+
+  Serial.println();
 }
 
 void updateDisplay(uint8_t rt, double t, double h, uint32_t l, uint8_t source, int16_t rssi)
@@ -356,7 +356,7 @@ void updateDisplay(uint8_t rt, double t, double h, uint32_t l, uint8_t source, i
   // 6. blue line
   snprintf(line, MAX_LEN, "%4d C", rt);
   oled.drawString(0, 5, line);
-  
+
 
   // 8. Posledni radek
   snprintf(line, MAX_LEN, "%d x", packetId);
@@ -379,13 +379,13 @@ void cmdSetNetworkId(SerialCommands *sender)
 {
   char *arg = sender->Next();
 
-  if(arg)
+  if (arg)
   {
     uint8_t nid = constrain(atoi(arg), 0, 255);
     Serial.print(F("new Network ID: "));
     Serial.println(nid);
     settings.networkid = nid;
-  
+
     EEPROM.put(0, settings);
     radio.setNetwork(nid);
   }
@@ -407,7 +407,7 @@ void cmdSetNodeId(SerialCommands *sender)
 {
   char *arg = sender->Next();
 
-  if(arg)
+  if (arg)
   {
     uint8_t nid = constrain(atoi(arg), 0, 255);
     Serial.print(F("new Node ID: "));
@@ -467,6 +467,6 @@ void powerDown()
 
   //Turn on ADC
   ADCSRA |= (1 << ADEN);
-  
+
   digitalWrite(LED_PIN, HIGH);
 }

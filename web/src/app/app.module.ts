@@ -13,6 +13,7 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBarModule}  from '@angular/material';
 
 import { AppComponent } from './app.component';
 import { AppRouterModule } from './app-router.module';
@@ -48,7 +49,8 @@ import { NodeComponent } from './node/node.component';
     MatGridListModule,
     MatListModule,
     MatSidenavModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatSnackBarModule
   ],
   providers: [NodeService, TaskService, SerialService, ProgressService],
   bootstrap: [AppComponent]

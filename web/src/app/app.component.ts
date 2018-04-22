@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy} from '@angular/core';
+import { Component, OnInit, OnDestroy, VERSION } from '@angular/core';
 
 import { Observable } from "rxjs/Rx";
 import { AnonymousSubscription } from "rxjs/Subscription";
@@ -8,7 +8,7 @@ import { TaskService } from './task.service';
 
 import { ProgressService } from './progress.service';
 
-
+import { MatSnackBar } from "@angular/material";
 
 @Component({
   selector: 'app-root',
@@ -19,11 +19,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   title = 'Home Sensors';
   mode = "determinate"
+  version = VERSION.full
 
   private timerTasksSubscription: AnonymousSubscription;
   tasks: Task[];
 
-  constructor(private taskService: TaskService, private  progressService: ProgressService) {
+  constructor(private taskService: TaskService, private  progressService: ProgressService, public snackBar: MatSnackBar) {
     progressService.progress$.subscribe(
       mode => {
         this.mode = mode
@@ -32,6 +33,7 @@ export class AppComponent implements OnInit, OnDestroy {
     taskService.task$.subscribe(
       mode => {
         this.getTasks(false)
+        this.openSnackBar()
       });
   }
 
@@ -52,6 +54,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private subscribeToTasksData(): void {
     this.timerTasksSubscription = Observable.timer(5000).first().subscribe(() => {this.getTasks(true)});
+  }
+
+  openSnackBar() {
+    this.snackBar.open('Task created', 'Undo', {
+      duration: 1500,
+    });
   }
 
 }

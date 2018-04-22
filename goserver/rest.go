@@ -31,13 +31,23 @@ var taskBuffer struct {
 type Env struct {
     db *db.DB
     log *logrus.Entry
+    task int
+    taskMutex sync.Mutex
 }
+
+const (
+    TASK_CREATED            = "created"
+    TASK_PROCESSING         = "processing"
+    TASK_COMPLETED_OK       = "ok"
+    TASK_COMPLETED_ERROR    = "error"
+)
 
 type Task struct {
     Id int              `structs:"id",      json:"id"`
     Node int            `structs:"node",    json:"node"`
     Cmd string          `structs:"cmd",     json:"cmd"`
     Params []string     `structs:"params",  json:"params,omitempty"`
+    State string        `structs:"state",   json:"state,omitempty"`
 }
 
 type Node struct {
@@ -260,6 +270,14 @@ func (e *Env) tasksPost(c *gin.Context) {
 
     var task Task
     if err := c.BindJSON(&task); err == nil {
+
+        e.taskMutex.Lock()
+        task.Id = e.task
+        e.task++
+        e.taskMutex.Unlock()
+
+        task.State = TASK_CREATED
+
         log.Debug("Task created: ", task)
 
         taskBuffer.mutex.Lock()
