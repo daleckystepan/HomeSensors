@@ -271,6 +271,7 @@ void nodeLoop()
   {
     p.temperature = hdc.readTemperature();
     p.humidity = hdc.readHumidity();
+    //hdc.heatUp(30);
     Serial.print(F(" hdc1080"));
   }
 
@@ -302,7 +303,7 @@ void nodeLoop()
 }
 
 
-void publishPacketSensorData(uint8_t id, int16_t rssi , PacketSensorData *p)
+void publishPacketSensorData(uint8_t id, int16_t rssi , const struct PacketSensorData *p)
 {
   Serial.print(F("# "));
 

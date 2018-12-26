@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, VERSION } from '@angular/core';
 
-import { Observable } from "rxjs/Rx";
-import { AnonymousSubscription } from "rxjs/Subscription";
+import { Observable, interval } from 'rxjs';
 
 import { Task } from './task';
 import { TaskService } from './task.service';
@@ -21,7 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   mode = "determinate"
   version = VERSION.full
 
-  private timerTasksSubscription: AnonymousSubscription;
+  private timerTasksInterval: Observable<number>;
   tasks: Task[];
 
   constructor(private taskService: TaskService, private  progressService: ProgressService, public snackBar: MatSnackBar) {
@@ -39,12 +38,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
        this.getTasks(true);
+       this.timerTasksInterval = interval(5000);
   }
 
   public ngOnDestroy(): void {
-      if (this.timerTasksSubscription) {
-        this.timerTasksSubscription.unsubscribe();
-    }
+
   }
 
   getTasks(subscribe: boolean): void {
@@ -53,7 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToTasksData(): void {
-    this.timerTasksSubscription = Observable.timer(5000).first().subscribe(() => {this.getTasks(true)});
+    this.timerTasksInterval.subscribe(() => {this.getTasks(true)});
   }
 
   openSnackBar() {

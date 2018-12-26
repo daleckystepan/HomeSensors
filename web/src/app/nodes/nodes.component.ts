@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable } from "rxjs/Rx";
-import { AnonymousSubscription } from "rxjs/Subscription";
+import { Observable, interval } from 'rxjs';
 
 import { Node } from '../node';
 import { NodeService } from '../node.service';
@@ -13,9 +12,6 @@ import { NodeService } from '../node.service';
 })
 export class NodesComponent implements OnInit, OnDestroy {
 
-  private timerSubscription: AnonymousSubscription;
-
-
   constructor(private nodeService: NodeService) { }
 
   ngOnInit() {
@@ -23,14 +19,7 @@ export class NodesComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
-    if (this.timerSubscription) {
-        this.timerSubscription.unsubscribe();
-    }
+
   }
-
-//   private subscribeToData(): void {
-//     this.timerSubscription = Observable.timer(5000).first().subscribe(() => this.getNodes());
-//   }
-
 
 }

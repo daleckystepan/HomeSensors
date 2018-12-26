@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import {Observable} from "rxjs/Rx";
-import {AnonymousSubscription} from "rxjs/Subscription";
+import { Observable, interval } from 'rxjs';
 
 import { SerialService } from '../serial.service';
 
@@ -13,18 +12,17 @@ import { SerialService } from '../serial.service';
 export class SerialComponent implements OnInit, OnDestroy {
 
   text: String[] = []
-  private timerSubscription: AnonymousSubscription;
+  private timerInterval: Observable<number>;
 
   constructor(private serialService: SerialService) { }
 
   ngOnInit() {
     this.getSerial()
+    this.timerInterval = interval(1000);
   }
 
   public ngOnDestroy(): void {
-    if (this.timerSubscription) {
-        this.timerSubscription.unsubscribe();
-    }
+
   }
 
   getSerial(): void {
@@ -33,7 +31,7 @@ export class SerialComponent implements OnInit, OnDestroy {
   }
 
     private subscribeToData(): void {
-    this.timerSubscription = Observable.timer(1000).first().subscribe(() => this.getSerial());
+    this.timerInterval.subscribe(() => this.getSerial());
   }
 
 

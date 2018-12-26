@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 
-import { Observable } from "rxjs/Rx";
-import { AnonymousSubscription } from "rxjs/Subscription";
+import { Observable, interval } from 'rxjs';
 
 import { Task } from '../task';
 import { TaskService } from '../task.service';
@@ -13,19 +12,18 @@ import { TaskService } from '../task.service';
 })
 export class TaskComponent implements OnInit {
 
-  private timerSubscription: AnonymousSubscription;
+  private timerInterval: Observable<number>;
   @Input() task: Task;
 
   constructor(private taskService: TaskService) { }
 
   ngOnInit() {
     this.getTask();
+    this.timerInterval = interval(5000);
   }
 
   public ngOnDestroy(): void {
-    if (this.timerSubscription) {
-        this.timerSubscription.unsubscribe();
-    }
+
   }
 
   getTask(): void {
@@ -34,7 +32,7 @@ export class TaskComponent implements OnInit {
   }
 
   private subscribeToData(): void {
-    this.timerSubscription = Observable.timer(5000).first().subscribe(() => this.getTask());
+    this.timerInterval.subscribe(() => this.getTask());
   }
 
 }

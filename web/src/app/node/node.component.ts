@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 
-import { Observable } from "rxjs/Rx";
-import { AnonymousSubscription } from "rxjs/Subscription";
+import { Observable, interval } from 'rxjs';
 
 import { Node } from '../node';
 import { NodeService } from '../node.service';
@@ -17,7 +16,7 @@ import { ProgressService } from '../progress.service';
 })
 export class NodeComponent implements OnInit, OnDestroy {
 
-  private timerSubscription: AnonymousSubscription;
+  private timerInterval: Observable<number>;
   @Input() node: Node;
   @Output() onTaskCreated = new EventEmitter<any>();
 
@@ -25,12 +24,11 @@ export class NodeComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
       //this.getNode();
+      this.timerInterval = interval(1000);
   }
 
   public ngOnDestroy(): void {
-    if (this.timerSubscription) {
-        this.timerSubscription.unsubscribe();
-    }
+
   }
 
   getNode(): void {
@@ -39,7 +37,7 @@ export class NodeComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToData(): void {
-    this.timerSubscription = Observable.timer(5000).first().subscribe(() => this.getNode());
+    this.timerInterval.subscribe(() => this.getNode());
   }
 
   ping(node: Node): void {

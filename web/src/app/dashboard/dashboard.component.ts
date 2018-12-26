@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy} from '@angular/core';
 
-import { Observable } from "rxjs/Rx";
-import { AnonymousSubscription } from "rxjs/Subscription";
+import { Observable, interval } from 'rxjs';
 
 import { Node } from '../node';
 import { Task } from '../task';
@@ -16,19 +15,18 @@ import { TaskService } from '../task.service';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
 
-  private timerNodesSubscription: AnonymousSubscription;
+  private timerNodesInterval: Observable<number>;
   nodes: Node[]
 
   constructor(private nodeService: NodeService, private taskService: TaskService) {}
 
   ngOnInit() {
      this.getNodes(true);
+     this.timerNodesInterval = interval(1000);
   }
 
   public ngOnDestroy(): void {
-    if (this.timerNodesSubscription) {
-        this.timerNodesSubscription.unsubscribe();
-    }
+
   }
 
   getNodes(subscribe: boolean): void {
@@ -39,7 +37,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToNodesData(): void {
-    this.timerNodesSubscription = Observable.timer(5000).first().subscribe(() => {this.getNodes(true)});
+    this.timerNodesInterval.subscribe(() => {this.getNodes(true)});
   }
 
 
