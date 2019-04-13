@@ -195,13 +195,6 @@ void loop(void)
 
   if (radio.receiveDone())
   {
-    Serial.print(F("[RFM69] Incoming packet from: "));
-    Serial.print(radio.SENDERID, DEC);
-    Serial.print(F(" LEN: "));
-    Serial.print(radio.DATALEN);
-    Serial.print(F(" RSSI: "));
-    Serial.println(radio.RSSI);
-
     receivePacket();
   }
 
@@ -236,26 +229,31 @@ void receivePacket()
   lastRssi = radio.RSSI;
   PacketHeader *p = (PacketHeader*)radio.DATA;
 
+  Serial.print(F("[RFM69] Incoming packet from: "));
+  Serial.print(lastSource, DEC);
+  Serial.print(F(" LEN: "));
+  Serial.print(radio.DATALEN);
+  Serial.print(F(" RSSI: "));
+  Serial.println(lastRssi);
+
   switch (p->type)
   {
     case SENSOR_DATA:
       publishPacketSensorData(lastSource, lastRssi, (PacketSensorData*)p);
-      break;
+    break;
 
     case PING_REQUEST:
       Serial.print(F("[RFM69] Ping request"));
-      break;
+    break;
 
     case PING_RESPONSE:
       Serial.print(F("[RFM69] Ping reponse"));
-      break;
+    break;
 
     default:
-      Serial.print(F("[RFM69] Invalid packet from "));
-      Serial.print(lastSource);
-      Serial.print(F(" type "));
+      Serial.print(F("[RFM69] Invalid packet type "));
       Serial.println(p->type);
-      break;
+    break;
   }
 }
 
