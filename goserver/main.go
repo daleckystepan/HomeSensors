@@ -16,20 +16,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tarm/serial"
-	//  "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type settings struct {
 	debug  *bool
 	serial *string
+	listen *string
 }
 
 func main() {
-
 	settings := &settings{}
 	// Program options
 	settings.debug = flag.Bool("debug", false, "specify flag for debug verbosity")
 	settings.serial = flag.String("serial", "/dev/ttyUSB0", "Specify serial path")
+	settings.listen = flag.String("listen", ":8000", "API Listen port")
 
 	flag.Parse()
 
@@ -50,7 +50,7 @@ func main() {
 
 	go mainSerial(&wg, settings)
 
-	go mainGin(&wg)
+	go mainGin(&wg, settings)
 
 	go func() {
 		defer wg.Done()
@@ -79,7 +79,9 @@ func mainSerial(wg *sync.WaitGroup, settings *settings) {
 		var line = scanner.Text()
 		linejson, _ := json.Marshal(line)
 
-		resp, err := http.Post("http://localhost:8080/v1/serial", "application/json", bytes.NewReader(linejson))
+		log.Debug(line)
+
+		resp, err := http.Post("http://localhost:8000/v1/serial", "application/json", bytes.NewReader(linejson))
 
 		if err != nil {
 			log.Error(err)
